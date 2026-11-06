@@ -47,7 +47,7 @@ The lack of a general probabilistic and statistical interpretation of SVMs keeps
 
 In light of these challenges, we introduce a probabilistic interpretation of SVMs by expressing their dual objectives exactly as Kullback-Leibler divergence minimisation tasks with constrained parameter spaces. This is in contrast to maximum entropy discrimination \cite{3009657.3009724}, as in our approach, the dual objective functions for both support vector classification and regression are expressed as the divergence between two Gaussian measures. We further demonstrate that this divergence serves as the exact objective function for kernel ridge regression.
 
-We begin the paper with section \ref{preliminaries} which covers the theoretical preliminaries necessary for understanding the notation we use in our derivation, including the definition of the Kullback-Leibler divergence and its physical interpretation, as well as a subsection on defining the Hilbert space of measurable functions and a Gaussian measure on the Borel space of the said Hilbert space. Next, in section \ref{theory-section} we demonstrate the primary result and its derivation, starting with the generalised description of the primal problem for SVMs, then an end to end derivation of the generalised dual problem for SVMs, finally finishing off with the direct comparison of the generalised dual with the divergence between two specific Gaussian measures to show their equivalence. Furthermore, we extend our result to demonstrate that this divergence also serves as the objective function for kernel ridge regression. Before ending the section, we show how the classical dual objective for SVMs is derived exactly as a result of restricting the Hilbert space on which the Gaussian measures are defined to be finite dimensional. Finally, in section \ref{conclusion} we conclude the paper with table \ref{summary-table}, which summarises the primary differences between the machine learning algorithms analysed in this paper through the lens of our unifying theory, as well as a light overview of the type of research for which this paper will be useful. Section \ref{appendix} is reserved for showcasing the proofs of the theorems stated in this paper.
+We begin the paper with section \ref{preliminaries} which covers the theoretical preliminaries necessary for understanding the notation we use in our derivation, including the definition of the Kullback-Leibler divergence and its physical interpretation, as well as a subsection on defining the Hilbert space of measurable functions and a Gaussian measure on the Borel space of the said Hilbert space. Next, in section \ref{theory-section} we demonstrate the primary result and its derivation, starting with the generalised description of the primal problem for SVMs, then an end to end derivation of the generalised dual problem for SVMs and how its optimal solutions are related with the solutions of the primal problem, finally finishing off with the direct comparison of the generalised dual with the divergence between two specific Gaussian measures to show their equivalence. Furthermore, we extend our result to demonstrate that this divergence also serves as the objective function for kernel ridge regression. Before ending the section, we show how the classical dual objective for SVMs is derived exactly as a result of restricting the Hilbert space on which the Gaussian measures are defined to be finite dimensional. Finally, in section \ref{conclusion} we conclude the paper with table \ref{summary-table}, which summarises the primary differences between the machine learning algorithms analysed in this paper through the lens of our unifying theory, as well as a light overview of the type of research for which this paper will be useful. Section \ref{appendix} is reserved for showcasing the proofs of the theorems stated in this paper.
 
 \section{Preliminaries} \label{preliminaries}
 
@@ -194,21 +194,91 @@ Where $\operatorname{dom}(f)$ is the space of all inputs for $f : \Theta \righta
 \begin{align}
 A(\theta) & = \mathbb{E}[W Z(X)| X] + b \\
  & = b + \sum_{i = 1}^{\infty} \sqrt{\lambda_i} \phi_i (X) \mathbb{E}[W Z_i] \\
- & = b + K^{\frac{1}{2}} w \in \Phi^{\frac{1}{2}}
+ & = b + K^{\frac{1}{2}} w \in \Phi^{\frac{1}{2}} + \operatorname{span}(\mathbf{1}) \subseteq \Phi
 \end{align}
 
 for some $w \in \mathcal{H}$ such that $\langle w , \phi_i (X) \rangle_{\mathcal{H}} = \mathbb{E}[W Z_i]$ for all $i \in \mathbb{N}$. The space $\operatorname{cont}(g)$ is the space of all points in $\operatorname{dom}(g)$ where $g : \Phi \rightarrow \mathbb{R} \cup \{\infty\}$ is continuous. Trivially, one can check that $g$, regardless of whether $l = l_{\text{bin}}$ or $l = l_{\text{reg}}$, is Lipschitz continuous with the Lipschitz coefficient $C$. Therefore $\operatorname{cont}(g) = \Phi$. The Cameron-Martin space $\Phi^{\frac{1}{2}}$ is not empty, since for $0 \in \Theta$, we have $A(0) = 0 \in \Phi^{\frac{1}{2}}$, therefore, strong duality holds.
 
+\subsection{Optimal Solution}
+
+The optimal parameters for the primal problem $\theta = (W,b) \in \Theta$ are related to the optimal parameters of the dual problem $\alpha \in \Phi$ by the following relations:
+\begin{align}
+    A^{*}\alpha \in \partial f (\theta) \subseteq \Theta \label{subdiff-f}\\
+    -\alpha \in \partial g (A\theta) \subseteq \Phi \label{subdiff-g}
+\end{align}
+
+where $\partial$ denotes the sub-differential operator, as defined in \cite[Section 4.2]{Borwein2005-ky}. Here, we will derive the sub-differentials to express the relationships exactly. The sub-differential of $f : \Theta \rightarrow \mathbb{R} \cup \{\infty\}$ is given trivially as $\partial f (\theta) = \{(W,0)\}$. Therefore, by Theorem~\ref{thm:adjoint-A} and \ref{subdiff-f}, we have $A^{*}(\alpha) = (\langle Z_X , \alpha \rangle_{\Phi} , \mathbb{E}[\alpha]) = (W,0) \ \mathbb{P}\text{-a.s.}$, implying that at optimality we have $\langle Z_X , \alpha \rangle_{\Phi} = W \ \mathbb{P}\text{-almost surely}$. This gives us the following equality:
+\begin{equation}
+A \theta = \mathbb{E}[W Z(X)|X] + b =\mathbb{E}[Z(X)\langle Z_X , \alpha \rangle_{\Phi}|X] + b = K\alpha + b
+\end{equation}
+
+For the sub-differential of $g : \Phi \rightarrow \mathbb{R} \cup \{\infty\}$, we have the following theorems:
+
+\begin{theorem}[Sub-differential of g: Classification]\label{thm:subdiff-g-class}
+The sub-differential of $g :\Phi \rightarrow \mathbb{R} \cup \{ \infty\}$ when $l = l_{\text{bin}}$ as defined in \ref{svm-classification} is given as follows:
+\begin{equation}\label{classification-subdifferential}
+\partial g(V) = \{\alpha \in \Phi : \alpha = -\operatorname{sign}(Y)(C\mathbb{I}\{|Y|>\operatorname{sign}(Y)V\} + |\alpha|\mathbb{I}\{Y=V\}), |\alpha| \leq C\ \mathbb{P}\text{-a.s.}\} 
+\end{equation} 
+
+\end{theorem}
+
+\begin{theorem}[Sub-differential of g: Regression]\label{thm:subdiff-g-reg}
+The sub-differential of $g :\Phi \rightarrow \mathbb{R} \cup \{ \infty\}$ when $l = l_{\text{reg}}$ is defined as in \ref{svm-regression} is given as follows:
+\begin{equation}\label{regression-subdifferential}
+\partial g(V) = \{\alpha \in \Phi : \alpha = -\operatorname{sign}(Y-V)(C\mathbb{I}\{|Y-V|>\varepsilon\} + |\alpha|\mathbb{I}\{|Y-V|=\varepsilon\}), |\alpha| \leq C\ \mathbb{P}\text{-a.s.}\} 
+\end{equation} 
+    
+\end{theorem}
+
+Solving for the classification case, given \ref{subdiff-g} and Theorem~\ref{thm:subdiff-g-class}, we have the following rule, where we define $\Delta := Y - \mathbb{E}[W Z(X)|X] = Y - K\alpha$:
+\begin{equation}
+    \alpha = \operatorname{sign}(Y)(C\mathbb{I}\{\operatorname{sign}(Y)(\Delta-b)>0\} + |\alpha|\mathbb{I}\{\Delta=b\})
+\end{equation}
+
+Suppose we have $Y > 0$, then if $C =\alpha$, then $\Delta \ge b$, and if $0 < \alpha < C$, then $\Delta = b$, and finally if $\alpha = 0$, we have $\Delta\le b$. Now suppose $Y < 0$, then if $\alpha = -C$, then $\Delta \le b$ and if $-C < \alpha < 0$, then $\Delta = b$, and finally if $\alpha = 0$, we have $\Delta\ge b$. Finally, if $Y = 0$, then no bounds are set and $b$ can take any value in $\mathbb{R}$. Setting the following quantities:
+\begin{align}
+    b^-_\text{bin} &:= \operatorname{ess} \sup\{\Delta : (Y <0\ \text{and} \ \alpha <0) \ \text{or} \ (Y>0\ \text{and} \ 0 \leq\alpha < C)\}\\
+    b^+_\text{bin} &:= \operatorname{ess} \inf\{\Delta : (Y > 0\ \text{and} \ \alpha > 0) \ \text{or} \ (Y < 0 \ \text{and} \ -C < \alpha \leq 0) \}
+\end{align}
+
+where $\operatorname{ess} \sup$ and $\operatorname{ess} \inf$ are the essential supremum and infimum, respectively. The set $\mathbf{B}_\text{bin}$ of optimal values for $b$ for classification is given as follows:
+\begin{equation}
+   b \in\mathbf{B}_\text{bin} := \begin{cases}
+       \mathbb{R} \cap [ b^-_\text{bin} , b^+_\text{bin}] &\text{if} \ b^-_\text{bin} \leq b^+_\text{bin} \\
+       \varnothing &\text{otherwise}
+   \end{cases} 
+\end{equation}
+
+Meanwhile, solving for the regression case, given \ref{subdiff-g} and Theorem~\ref{thm:subdiff-g-reg}, we have the following rule:
+\begin{equation}
+    \alpha = \operatorname{sign}(\Delta-b)(C\mathbb{I}\{|\Delta - b|>\varepsilon\} + |\alpha|\mathbb{I}\{|\Delta - b|=\varepsilon\})
+\end{equation}
+
+We have that if $\alpha = C$, then $\Delta - \varepsilon \geq b$, if $0 < \alpha < C$, then $\Delta - \varepsilon = b$, if $\alpha = 0$, then $\Delta - \varepsilon \leq b \leq \Delta + \varepsilon$, if $-C < \alpha < 0$, then $b = \Delta + \varepsilon$, and finally if $\alpha = -C$ then $b \geq \Delta + \varepsilon$. Setting the following quantities:
+\begin{align}
+    b^-_\text{reg} := \max(\operatorname{ess} \sup \{\Delta  + \varepsilon: \alpha <0\} ,\operatorname{ess} \sup \{\Delta  - \varepsilon: 0\leq\alpha <C\})\\
+    b^+_\text{reg} := \min(\operatorname{ess} \inf \{\Delta  - \varepsilon: \alpha >0\} ,\operatorname{ess} \inf \{\Delta  + \varepsilon: -C <\alpha \leq  0\})
+\end{align}
+
+The set $\mathbf{B}_\text{reg}$ of optimal values for $b$ for regression is given as follows:
+\begin{equation}
+   b \in\mathbf{B}_\text{reg} := \begin{cases}
+       \mathbb{R} \cap [ b^-_\text{reg} , b^+_\text{reg}] &\text{if} \ b^-_\text{reg} \leq b^+_\text{reg} \\
+       \varnothing &\text{otherwise}
+   \end{cases} 
+\end{equation}
+
+
 \subsection{Divergence Connection} \label{divergence-connection}
 
-The objective functions of the dual objectives given by \ref{classification-dual} and \ref{regression-dual} can be reproduced exactly with the divergence between two Gaussian measures. Suppose $Z_X \sim N_{\Phi} (Y , K)$ under the probability measure $\mathbb{Q}$, while $Z_X \sim N_{\Phi} (K \alpha , K)$ under the probability measure $\mathbb{P}$. Since the two Gaussian measures $\mathbb{Q}_{Z_X}$ and $\mathbb{P}_{Z_X}$ are mutually absolutely continuous with respect to each other, according to the Feldman–Hájek theorem \cite[Theorem 2.23]{Da_Prato_Zabczyk_1992}, we use the definition of the divergence given in \ref{divergence-section} and use the formula from \cite[Theorem 12]{quang2019regularizeddivergencescovarianceoperators} to write down the following divergence:
+The objective functions of the dual objectives given by \ref{classification-dual} and \ref{regression-dual} can be reproduced exactly with the divergence between two Gaussian measures. Suppose $Z_X \sim N_{\Phi} (Y , K)$ under the probability measure $\mathbb{Q}$ such that $Y \in \Phi^{\frac{1}{2}}$, where $\Phi^{\frac{1}{2}} := \operatorname{Im}(K^{\frac{1}{2}})$ is the Cameron-Martin space, while $Z_X \sim N_{\Phi} (K \alpha , K)$ under the probability measure $\mathbb{P}$. Since the two Gaussian measures $\mathbb{Q}_{Z_X}$ and $\mathbb{P}_{Z_X}$ are mutually absolutely continuous with respect to each other, according to the Feldman–Hájek theorem \cite[Theorem 2.23]{Da_Prato_Zabczyk_1992}, we use the definition of the divergence given in \ref{divergence-section} and use the formula from \cite[Theorem 12]{quang2019regularizeddivergencescovarianceoperators} to write down the following divergence:
 \begin{align}\label{divergence-svm}
 D_{Z_X}[\mathbb{Q}\|\mathbb{P}] & = \frac{1}{2}\| K \alpha - Y\|_K^2 \\
  & = \frac{1}{2} \langle K \alpha , K \alpha \rangle_K - \langle K \alpha , Y \rangle_K + \frac{1}{2}\| Y\|_K^2 \\
  & = \frac{1}{2} \langle \alpha , K \alpha \rangle_{\Phi} - \langle \alpha , Y \rangle_{\Phi} + \frac{1}{2}\| Y\|_K^2
 \end{align}
 
-where the inner product $\langle . , . \rangle_K : \Phi^{\frac{1}{2}} \times \Phi^{\frac{1}{2}} \rightarrow \mathbb{R}$ is defined on the Cameron-Martin space $\Phi^{\frac{1}{2}} := \operatorname{Im}(K^{\frac{1}{2}})$ such that for any $h , g \in \Phi^{\frac{1}{2}}$, we have $\langle h , g \rangle_K := \langle K^{-\frac{1}{2}} h , K^{-\frac{1}{2}} g \rangle_{\Phi}$, while the respective norm is defined trivially as $\| .\|_K := \sqrt{\langle . , .\rangle_K}$. This expansion of the divergence requires that $Y \in \Phi^{\frac{1}{2}}$.
+where the inner product $\langle . , . \rangle_K : \Phi^{\frac{1}{2}} \times \Phi^{\frac{1}{2}} \rightarrow \mathbb{R}$ is defined on $\Phi^{\frac{1}{2}}$ such that for any $h , g \in \Phi^{\frac{1}{2}}$, we have $\langle h , g \rangle_K := \langle K^{-\frac{1}{2}} h , K^{-\frac{1}{2}} g \rangle_{\Phi}$, while the respective norm is defined trivially as $\| .\|_K := \sqrt{\langle . , .\rangle_K}$.
 
 We now have that minimising $D_{Z_X}\left[\mathbb{Q}\|\mathbb{P}\right]$ given the constraints that $\mathbb{E}\left[\alpha\right] = 0$ and $\operatorname{sign}\left(Y\right) \alpha = |\alpha | \leq C \ \mathbb{P}$-almost surely for some chosen $C > 0$ exactly reproduces the support vector classification objective derived in \ref{classification-dual}. To derive such a representation for support vector regression, we define additional random variables that produce the $L^1$ loss exactly from their divergence.
 
@@ -228,7 +298,7 @@ D_{R ,\alpha}[\mathbb{Q}\|\mathbb{P}] = \frac{\varepsilon}{2} \mathbb{E}[\alpha^
 
 This gives us the following objective:
 \begin{align} \label{krr-divergence}
-D_{Z_x , R ,\alpha}[\mathbb{Q}\|\mathbb{P}] & = \frac{1}{2} \langle \alpha , K \alpha \rangle_{\Phi} - \langle \alpha , Y \rangle_{\Phi} + \frac{1}{2}\| Y\|_K^2 + \frac{\varepsilon}{2} \langle \alpha , \alpha \rangle_{\Phi} \\
+D_{Z_X , R ,\alpha}[\mathbb{Q}\|\mathbb{P}] & = \frac{1}{2} \langle \alpha , K \alpha \rangle_{\Phi} - \langle \alpha , Y \rangle_{\Phi} + \frac{1}{2}\| Y\|_K^2 + \frac{\varepsilon}{2} \langle \alpha , \alpha \rangle_{\Phi} \\
  & = \frac{1}{2} \langle \alpha , (K + \varepsilon I) \alpha \rangle_{\Phi} - \langle \alpha , Y \rangle_{\Phi} + \frac{1}{2}\| Y\|_K^2
 \end{align}
 
@@ -247,7 +317,7 @@ For any given random variable $X : \Omega \rightarrow \mathcal{X}$ on the probab
 \end{lemma}
 
 \begin{proof}[Proof of Lemma~\ref{thm:finite-dims}]
-Assume $|\operatorname{supp}(\mathbb{P}_X)| = n \in \mathbb{N}$. Since $\mathcal{X}$ is a separable and complete metric space that generates the Borel $\sigma$-algebra $\mathcal{B}(\mathcal{X})$ on which the measure $\mathbb{P}_X$ is defined, we have that $\mathbb{P}_X(\operatorname{supp}(\mathbb{P}_X)^c) = 0$, so $\mathbb{P}(X \in \{x_1, ..., x_n\}) = 1$ and $\mathbb{P}(X = x_i) > 0$ for some values $x_i \in \mathcal{X}$ for $i \in [1, n]_\mathbb{Z}$. By the Doob-Dynkin lemma, for any random variable $Y \in L^2(\Omega, \sigma(X), \mathbb{P})$ there exists a measurable function $f : \mathcal{X} \rightarrow \mathbb{R}$ such that $Y = f(X) = \sum_{i=1}^n f(x_i)\mathbb{I}\{X=x_i\} \ \mathbb{P}\text{-a.s.}$. The indicator functions $\mathbb{I}\{X=x_i\} \in L^2(\Omega, \sigma(X), \mathbb{P})$ for all $i \in [1, n]_\mathbb{Z}$ form an orthogonal basis of size $n$. Therefore, $\dim(L^2(\Omega, \sigma(X), \mathbb{P})) = n$.
+Assume $|\operatorname{supp}(\mathbb{P}_X)| = n \in \mathbb{N}$. Since $\mathcal{X}$ is a separable and complete metric space that generates the Borel $\sigma$-algebra $\mathcal{B}(\mathcal{X})$ on which the measure $\mathbb{P}_X$ is defined, we have that $\mathbb{P}_X(\operatorname{supp}(\mathbb{P}_X)^c) = 0$ by \cite[Lemma 1.19]{Kallenberg2021-jt}, so $\mathbb{P}(X \in \{x_1, ..., x_n\}) = 1$ and $\mathbb{P}(X = x_i) > 0$ for some values $x_i \in \mathcal{X}$ for $i \in [1, n]_\mathbb{Z}$. By the Doob-Dynkin lemma \cite[Lemma 1.14]{Kallenberg2021-jt}, for any random variable $Y \in L^2(\Omega, \sigma(X), \mathbb{P})$ there exists a measurable function $f : \mathcal{X} \rightarrow \mathbb{R}$ such that $Y = f(X) = \sum_{i=1}^n f(x_i)\mathbb{I}\{X=x_i\} \ \mathbb{P}\text{-a.s.}$. The indicator functions $\mathbb{I}\{X=x_i\} \in L^2(\Omega, \sigma(X), \mathbb{P})$ for all $i \in [1, n]_\mathbb{Z}$ form an orthogonal basis of size $n$. Therefore, $\dim(L^2(\Omega, \sigma(X), \mathbb{P})) = n$.
 
 Now assume $\dim(L^2(\Omega, \sigma(X), \mathbb{P})) = n \in \mathbb{N}$. Suppose $|\operatorname{supp}(\mathbb{P}_X)| > n$. Since any separable and complete metric space is Hausdorff, we can form $m > n$ pairwise disjoint open $\mathcal{B}(\mathcal{X})$-measurable sets $(U_i)_{i=1}^m$ around each of the $m$ values in $\operatorname{supp}(\mathbb{P}_X)$. By definition, $\mathbb{P}_X (U_i) = \mathbb{P}(X \in U_i) > 0$ for all $i \in [1,m]_\mathbb{Z}$ and we have that $\mathbb{I}\{X \in U_i\} \in L^2(\Omega, \sigma(X), \mathbb{P})$ form an orthogonal set of $m > n$ functions. This contradicts $\dim(L^2(\Omega, \sigma(X), \mathbb{P})) = n$. Therefore, we are left with the following:
 \begin{equation}
@@ -263,7 +333,7 @@ In the setting of \ref{primal-problem}, if we make the dimension of the Hilbert 
 Given a non-degenerate Gaussian variable $Z : \Omega \rightarrow H$ defined on a Hilbert space $H$ according to \cite[Section 2.3.2]{Da_Prato_Zabczyk_1992} with a covariance operator $\Sigma : H \rightarrow H$, the Cameron-Martin space $H^{\frac{1}{2}} := \operatorname{Im}(\Sigma^{\frac{1}{2}})$ equals $H$ if and only if $\dim(H) < \infty$.
 \end{lemma}
 
-Lemma~\ref{thm:finite-dims} and Lemma~\ref{thm:finite-cam-martin} grant us the ability to derive classical SVMs from their divergence formulation given in \ref{divergence-connection} as follows. Given that $\Phi$ is finite, we have $Y \in \Phi^{\frac{1}{2}} = \Phi$ according to the Lemma~\ref{thm:finite-cam-martin}. The operator $K : \Phi \rightarrow \Phi$ acts as the Gram matrix on variables $\alpha \in \Phi$ as follows:
+Lemma~\ref{thm:finite-dims} and Lemma~\ref{thm:finite-cam-martin} grant us the ability to derive classical SVMs from their divergence formulation given in \ref{divergence-connection} as follows. Given that $\Phi$ is finite, we have $Y \in \Phi^{\frac{1}{2}} = \Phi$ according to Lemma~\ref{thm:finite-cam-martin}. The operator $K : \Phi \rightarrow \Phi$ acts as the Gram matrix on variables $\alpha \in \Phi$ as follows:
 \begin{equation}
 K \alpha = K \left(\sum_{i=1}^n \alpha_i \mathbb{I}\{I=i\}\right) = \sum_{i,j=1}^n K_{ij}p_j\alpha_j \mathbb{I}\{I=i\} =  \mathbb{E}[K_{IJ}\alpha_J|I]
 \end{equation}
@@ -385,7 +455,7 @@ First, we prove $A$ is bounded as follows:
 \begin{align}
 \| A(\theta)\|_{\Phi}^2 & = \mathbb{E}[(\mathbb{E}[W Z(X)| X] + b)^2] \\
  & \leq 2(\mathbb{E}[\mathbb{E}[W Z(X)| X]^2] + b^2) \ \text{by} \ (a + b)^2 \leq 2(a^2 + b^2) \\
- & \leq 2(\mathbb{E}[W^2] \mathbb{E}[\mathbb{E}[Z(X)^2 | X]] + b^2) \ \text{by Cauchy–Schwartz inequality} \\
+ & \leq 2(\mathbb{E}[W^2] \mathbb{E}[\mathbb{E}[Z(X)^2 | X]] + b^2) \ \text{by Cauchy–Schwarz inequality} \\
  & = 2(\mathbb{E}[W^2] \mathbb{E}[Z(X)^2] + b^2) \\
  & \leq 2 \max(\mathbb{E}[Z(X)^2], 1)\|\theta\|_{\Theta}^2
 \end{align}
@@ -394,7 +464,8 @@ Finally, we derive the adjoint:
 \begin{align}
 \langle A(W , b), \alpha \rangle_{\Phi} & = \langle \mathbb{E}[W Z(X)| X] + b , \alpha \rangle_{\Phi} \\
  & = \mathbb{E}[\alpha \mathbb{E}[W Z(X)| X]] + \mathbb{E}[\alpha] b \\
- & = \mathbb{E}[W \mathbb{E}[\alpha Z(X)| Z]] + \mathbb{E}[\alpha] b \\
+  & = \mathbb{E}[\alpha W Z(X)] + \mathbb{E}[\alpha] b  \ \text{by $X$-measurability of} \ \alpha\\
+ & = \mathbb{E}[W \mathbb{E}[\alpha Z(X)| Z]] + \mathbb{E}[\alpha] b \ \text{by $Z$-measurability of} \ W \\
  & = \langle (W , b), (\langle Z_X , \alpha \rangle_{\Phi} , \mathbb{E}[\alpha]) \rangle_{\Theta} \\
  & = \langle (W , b), A^{*}(\alpha) \rangle_{\Theta}
 \end{align} 
@@ -454,7 +525,8 @@ Combining results, we have generally that:
 \end{cases}
 \end{equation}
 
-Using this, we can trivially define the event from \ref{classification-condition} and derive the convex dual $g^{*}(\alpha)$ as given in \ref{classification-convex-dual}. \end{proof}
+Using this, we can trivially define the event from \ref{classification-condition} and derive the convex dual $g^{*}(\alpha)$ as given in \ref{classification-convex-dual}. 
+\end{proof}
 
 \begin{proof}[Proof of Theorem~\ref{thm:convex-conj-G-reg}]
 Set $l = l_{\text{reg}}$ as defined in \ref{svm-regression}, then repeat the proof of Theorem~\ref{thm:convex-conj-G-class} up to \ref{optimal-solution-equivalence}. We have the following for each $\omega \in \Omega$:
@@ -471,6 +543,95 @@ Set $l = l_{\text{reg}}$ as defined in \ref{svm-regression}, then repeat the pro
 \end{align}
 
 Using this, we can trivially define the event from \ref{regression-condition} and derive the convex dual $g^{*}(\alpha)$ as given in \ref{regression-convex-dual}. 
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:subdiff-g-class}]
+Using \cite[Theorem 6.5]{bùi2024interchangerulesintegralfunctions}, we have the following equivalence:
+\begin{equation} \label{subderiv-as-equiv}
+     \partial g (V) = \{\alpha \in \Phi : \alpha(\omega) \in \partial_x(Cl_\text{bin})(Y(\omega),V(\omega)) \ \mathbb{P}\text{-a.s.}\}
+\end{equation} 
+
+Thus, we must find $\partial_x(Cl_\text{bin})(y,x)$ for $x,y \in \mathbb{R}$. For $y > 0$, we have the following:
+\begin{align}
+    \partial_x(Cl_\text{bin})(y,x) & = \partial\begin{cases}
+        C (y-x) &\text{if}\ y \ge x\\
+        0 &\text{if} \ y<x
+    \end{cases}\\
+    &= \begin{cases}
+        \{-C\} &\text{if} \ y > x \\
+        [-C, 0] &\text{if} \ y = x \\
+        \{0\} &\text{if} \ y < x
+    \end{cases}
+\end{align}
+
+For $y = 0$ we have that $\partial_x(Cl_\text{bin})(y,x) = \{0\}$. Finally, we have the following for $y < 0$:
+\begin{align}
+    \partial_x(Cl_\text{bin})(y,x) & = \partial\begin{cases}
+        C (x-y) &\text{if}\ x \ge y\\
+        0 &\text{if} \ x<y
+    \end{cases}\\
+    &= \begin{cases}
+        \{0\} &\text{if} \ x < y \\
+        [0,C] &\text{if} \ x = y \\
+        \{C\} &\text{if} \ x > y \\
+    \end{cases}
+\end{align}
+
+Therefore, $\mathbb{P}$-almost surely, we have the following:
+\begin{equation}
+    \alpha \in \begin{cases}
+        \{-C\} &\text{if} \ Y > V \ \text{and} \ Y>0 \\
+        [-C, 0] &\text{if} \ Y = V \ \text{and} \ Y>0 \\
+        \{0\} &\text{if} \ (Y < V \ \text{and} \ Y>0) \ \text{or} \ (V < Y \ \text{and} \ Y<0) \ \text{or} \ Y=0 \\
+        [0,C] &\text{if} \ V = Y \ \text{and} \ Y <0 \\
+        \{C\} &\text{if} \ V > Y \ \text{and} \ Y <0
+    \end{cases}
+\end{equation}
+
+This means $|\alpha| \leq C \ \mathbb{P}$-almost surely. Given this case form, we can express it as the following equivalent indicator form $\mathbb{P}$-almost surely:
+\begin{align}
+    \alpha & = -C \mathbb{I}\{Y>V, Y>0\} + \min(0,\alpha) \mathbb{I}\{Y=V, Y>0\} \\
+    & + \max(0,\alpha) \mathbb{I}\{Y=V, Y<0\} + C\mathbb{I}\{V>Y, Y<0\}\\
+    & = -\operatorname{sign}(Y)(C\mathbb{I}\{\operatorname{sign}(Y)(Y-V) > 0\} + |\alpha| \mathbb{I}\{Y=V\})
+\end{align}
+    
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:subdiff-g-reg}]
+The equivalence \ref{subderiv-as-equiv} holds for the regression case as well. We must find we must find $\partial_x(Cl_\text{reg})(y,x)$ for $x,y \in \mathbb{R}$. We have the following:
+\begin{align}
+    \partial_x(Cl_\text{reg})(y,x) & = \partial\begin{cases}
+        C (y-x-\varepsilon) &\text{if}\ y -x\ge \varepsilon\\
+        0 &\text{if} \ |y-x|<\varepsilon\\
+        C(x-y-\varepsilon) &\text{if} \ x-y \ge \varepsilon
+    \end{cases}\\
+    &= \begin{cases}
+        \{-C\} &\text{if} \ y -x> \varepsilon  \\
+        [-C, 0] &\text{if} \ y -x= \varepsilon \\
+        \{0\} &\text{if} \ |y-x|<\varepsilon\\
+        [0,C] &\text{if} \ x -y= \varepsilon \\
+        \{C\} &\text{if} \ x -y> \varepsilon
+    \end{cases}
+\end{align}
+
+Therefore, $\mathbb{P}$-almost surely, we have the following:
+\begin{equation}
+    \alpha \in \begin{cases}
+        \{-C\} &\text{if} \ Y -V> \varepsilon  \\
+        [-C, 0] &\text{if} \ Y -V= \varepsilon \\
+        \{0\} &\text{if} \ |Y-V|<\varepsilon\\
+        [0,C] &\text{if} \ V -Y= \varepsilon \\
+        \{C\} &\text{if} \ V -Y> \varepsilon
+    \end{cases}
+\end{equation}
+
+This means $|\alpha| \leq C \ \mathbb{P}$-almost surely. Given this case form, we can express it as the following equivalent indicator form $\mathbb{P}$-almost surely:
+\begin{align}
+    \alpha & = -C \mathbb{I}\{Y-V>\varepsilon\} + \min(0,\alpha) \mathbb{I}\{Y-V=\varepsilon\} \\
+    & + \max(0,\alpha) \mathbb{I}\{V-Y = \varepsilon\} + C\mathbb{I}\{V-Y>\varepsilon\}\\
+    & = -\operatorname{sign}(Y-V)(C\mathbb{I}\{|Y-V| > \varepsilon\} + |\alpha| \mathbb{I}\{|Y-V| = \varepsilon\})
+\end{align}
+
 \end{proof}
 
 \bibliography{iclr2025_conference}
